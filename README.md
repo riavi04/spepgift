@@ -64,7 +64,7 @@ off while still loud.
 
 All recordings come from [xeno-canto](https://xeno-canto.org), reached through
 the [GBIF](https://www.gbif.org) open API, which mirrors the xeno-canto dataset
-and needs no API key. Only licences permitting derivative works are kept, so
+and needs no API key. Only licenses permitting derivative works are kept, so
 anything marked NoDerivatives is filtered out.
 
 Every clip in the current set is **CC BY-NC 4.0**, which means two conditions:
@@ -76,6 +76,6 @@ attribution requirement.
 ## Notes
 
 - The shoebill was requested but has no recordings on xeno-canto at all, and
-  none under a free licence anywhere else reachable. It is not in the set.
+  none under a free license anywhere else reachable. It is not in the set.
 - The Australian bustard only had a single remix-legal recording, so it has
   fewer clips than the others.
