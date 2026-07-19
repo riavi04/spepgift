@@ -363,7 +363,7 @@ async function startPlayback() {
   setPlayIcon(true);
   // Starting a track stops any sequencer loop, so its button must agree.
   $("#seqplay").textContent = "Play loop";
-  $$("#seqtable .cell").forEach((c) => c.classList.remove("cur"));
+  clearSeqStep();
 }
 
 /* ---------------- saving ---------------- */
@@ -532,10 +532,33 @@ function addLane(birdKey, redraw = true) {
 
 const DRUM_ROWS = [["kick", "Kick"], ["snare", "Snare"], ["hat", "Hat"], ["bass", "Bass"]];
 
+/* Cells indexed by step, so moving the playhead touches only the handful of
+   cells in one column. Scanning every cell each sixteenth was fine at one bar
+   and unusable at thirty-two, where there are several thousand of them. */
+let seqCellsByStep = [];
+let seqLitStep = -1;
+
+function markSeqStep(step) {
+  if (step === seqLitStep) return;
+  const prev = seqCellsByStep[seqLitStep];
+  if (prev) for (const c of prev) c.classList.remove("cur");
+  const now = seqCellsByStep[step];
+  if (now) for (const c of now) c.classList.add("cur");
+  seqLitStep = step;
+}
+
+function clearSeqStep() {
+  const prev = seqCellsByStep[seqLitStep];
+  if (prev) for (const c of prev) c.classList.remove("cur");
+  seqLitStep = -1;
+}
+
 function renderSeq() {
   const t = $("#seqtable");
   const steps = patternSteps();
   t.innerHTML = "";
+  seqCellsByStep = Array.from({ length: steps }, () => []);
+  seqLitStep = -1;
   t.className = "seq bars" + pattern.patternBars;
   const head = document.createElement("tr");
   head.innerHTML = '<th class="lbl"></th>' +
@@ -562,6 +585,7 @@ function renderSeq() {
         b.classList.toggle("on", !!pattern.drums[key][s]);
         if (pattern.drums[key][s] && key !== "bass") previewDrum(key);
       };
+      seqCellsByStep[s].push(b);
       cell.appendChild(b);
       tr.appendChild(cell);
     }
@@ -608,6 +632,7 @@ function renderSeq() {
         b.classList.toggle("on", !!lane.cells[s]);
         if (lane.cells[s]) Player.preview(lane.bird, lane.clip, lane.semi);
       };
+      seqCellsByStep[s].push(b);
       cell.appendChild(b);
       tr.appendChild(cell);
     }
@@ -628,14 +653,11 @@ async function toggleSeq() {
   if (Player.playing && Player.mode === "loop") {
     Player.stop();
     $("#seqplay").textContent = "Play loop";
-    $$("#seqtable .cell").forEach((c) => c.classList.remove("cur"));
+    clearSeqStep();
     return;
   }
   await Player.resume();
-  Player.onStep = (step) => {
-    const s = step % patternSteps();
-    $$("#seqtable .cell").forEach((c) => c.classList.toggle("cur", +c.dataset.step === s));
-  };
+  Player.onStep = (step) => markSeqStep(step % patternSteps());
   Player.onEnd = null;
   Player.play(pattern, "loop");
   $("#seqplay").textContent = "Stop";
@@ -825,7 +847,9 @@ function switchView(name) {
 function boot() {
   loadAll();
   Player.onBird = popBird;
-  Player.onStopped = clearPops;
+  // Runs however playback ends, including when starting something else, so
+  // neither the faces nor the sequencer playhead are left behind.
+  Player.onStopped = () => { clearPops(); clearSeqStep(); };
 
   $("#intro").addEventListener("click", (e) => {
     if (e.target.id === "enterbtn") return;

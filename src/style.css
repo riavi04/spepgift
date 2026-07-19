@@ -262,6 +262,12 @@ select{
   font-size:.63rem;color:var(--muted);font-weight:400;
   text-align:center;padding:0 0 3px;font-family:var(--mono);
 }
+/* Frozen while the grid scrolls sideways. At thirty-two bars the grid is many
+   screens wide and without this you cannot tell which row you are editing. */
+.seq th.lbl,.seq td.lbl{
+  position:sticky;left:0;z-index:2;background:var(--bg2);
+  box-shadow:1px 0 0 var(--line);
+}
 .seq th.lbl{text-align:left;min-width:150px}
 .seq td.lbl{
   font-size:.83rem;padding-right:8px;white-space:nowrap;
@@ -287,9 +293,15 @@ select{
 .seq.bars2 .cell{width:23px;height:23px}
 .seq.bars4 .cell{width:18px;height:18px;border-radius:4px}
 .seq.bars8 .cell{width:13px;height:13px;border-radius:3px}
-.seq.bars4{border-spacing:2px}
-.seq.bars8{border-spacing:2px}
-.seq.bars8 th{font-size:.55rem}
+.seq.bars16 .cell{width:12px;height:12px;border-radius:3px}
+.seq.bars32 .cell{width:10px;height:10px;border-radius:2px}
+.seq.bars4,.seq.bars8,.seq.bars16{border-spacing:2px}
+.seq.bars32{border-spacing:1px}
+.seq.bars8 th,.seq.bars16 th,.seq.bars32 th{font-size:.55rem}
+/* At these lengths the bar seam is the only way to keep your place. */
+.seq.bars16 .cell.barstart,.seq.bars32 .cell.barstart{
+  box-shadow:inset 2px 0 0 rgba(127,212,184,.65);
+}
 .seq .semi{
   background:var(--panel2);border:1px solid var(--line);border-radius:6px;
   color:var(--txt);font-size:.7rem;padding:2px 4px;font-family:var(--mono);
