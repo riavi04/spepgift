@@ -1123,21 +1123,21 @@
    {
     "file": "bellbird3_1.mp3",
     "duration": 0.464,
-    "score": 8.84,
-    "xc_id": "928842",
-    "source": "https://xeno-canto.org/928842",
-    "recordist": "Xavier Riera",
-    "license": "CC BY-NC 4.0",
-    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
-    "country": "Panama"
-   },
-   {
-    "file": "bellbird3_2.mp3",
-    "duration": 0.464,
     "score": 8.75,
     "xc_id": "747775",
     "source": "https://xeno-canto.org/747775",
     "recordist": "Brendan Sloan",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Costa Rica"
+   },
+   {
+    "file": "bellbird3_2.mp3",
+    "duration": 1.138,
+    "score": 7.72,
+    "xc_id": "824019",
+    "source": "https://xeno-canto.org/824019",
+    "recordist": "Enrique Varela",
     "license": "CC BY-NC 4.0",
     "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
     "country": "Costa Rica"
@@ -1286,17 +1286,6 @@
    },
    {
     "file": "chachalaca_1.mp3",
-    "duration": 2.531,
-    "score": 9.8,
-    "xc_id": "1090160",
-    "source": "https://xeno-canto.org/1090160",
-    "recordist": "GABRIEL LEITE",
-    "license": "CC BY-NC 4.0",
-    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
-    "country": "Guatemala"
-   },
-   {
-    "file": "chachalaca_2.mp3",
     "duration": 3.042,
     "score": 9.79,
     "xc_id": "1091754",
@@ -1305,6 +1294,427 @@
     "license": "CC BY-NC 4.0",
     "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
     "country": "United States of America"
+   },
+   {
+    "file": "chachalaca_2.mp3",
+    "duration": 3.042,
+    "score": 8.29,
+    "xc_id": "1090160",
+    "source": "https://xeno-canto.org/1090160",
+    "recordist": "GABRIEL LEITE",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Guatemala"
+   }
+  ]
+ },
+ "nightingale": {
+  "common": "Common Nightingale",
+  "scientific": "Luscinia megarhynchos",
+  "pack": "classic",
+  "blurb": "Sings through the night in whistles, trills and deep bubbling notes. The one the poets wrote about.",
+  "clips": [
+   {
+    "file": "nightingale_0.mp3",
+    "duration": 1.695,
+    "score": 11.34,
+    "xc_id": "1102982",
+    "source": "https://xeno-canto.org/1102982",
+    "recordist": "Guido O. Keijl",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Morocco"
+   },
+   {
+    "file": "nightingale_1.mp3",
+    "duration": 1.254,
+    "score": 2.03,
+    "xc_id": "1105867",
+    "source": "https://xeno-canto.org/1105867",
+    "recordist": "Paul Kelly",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Cyprus"
+   },
+   {
+    "file": "nightingale_2.mp3",
+    "duration": 1.451,
+    "score": 0.97,
+    "xc_id": "1105870",
+    "source": "https://xeno-canto.org/1105870",
+    "recordist": "Paul Kelly",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Cyprus"
+   }
+  ]
+ },
+ "cuckoo": {
+  "common": "Common Cuckoo",
+  "scientific": "Cuculus canorus",
+  "pack": "classic",
+  "blurb": "Two notes that name the bird. It lays eggs in other birds' nests and lets them raise the chick.",
+  "clips": [
+   {
+    "file": "cuckoo_0.mp3",
+    "duration": 0.929,
+    "score": 10.69,
+    "xc_id": "1101394",
+    "source": "https://xeno-canto.org/1101394",
+    "recordist": "Olivier SWIFT",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "France"
+   },
+   {
+    "file": "cuckoo_1.mp3",
+    "duration": 1.091,
+    "score": 5.61,
+    "xc_id": "1089905",
+    "source": "https://xeno-canto.org/1089905",
+    "recordist": "Christian Kerihuel",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "France"
+   },
+   {
+    "file": "cuckoo_2.mp3",
+    "duration": 0.499,
+    "score": 2.02,
+    "xc_id": "1095924",
+    "source": "https://xeno-canto.org/1095924",
+    "recordist": "Philippe_Grange",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "France"
+   }
+  ]
+ },
+ "mockingbird": {
+  "common": "Northern Mockingbird",
+  "scientific": "Mimus polyglottos",
+  "pack": "classic",
+  "blurb": "Copies everything and repeats each phrase a few times before moving on. Unmated males sing all night.",
+  "clips": [
+   {
+    "file": "mockingbird_0.mp3",
+    "duration": 0.836,
+    "score": 24.1,
+    "xc_id": "1084116",
+    "source": "https://xeno-canto.org/1084116",
+    "recordist": "Manuel Grosselet - Eva Lepiz",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Mexico"
+   },
+   {
+    "file": "mockingbird_1.mp3",
+    "duration": 0.964,
+    "score": 18.48,
+    "xc_id": "1075325",
+    "source": "https://xeno-canto.org/1075325",
+    "recordist": "Scott Crabtree",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "United States of America"
+   },
+   {
+    "file": "mockingbird_2.mp3",
+    "duration": 1.44,
+    "score": 14.11,
+    "xc_id": "1078049",
+    "source": "https://xeno-canto.org/1078049",
+    "recordist": "Scott Crabtree",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "United States of America"
+   }
+  ]
+ },
+ "raven": {
+  "common": "Common Raven",
+  "scientific": "Corvus corax",
+  "pack": "classic",
+  "blurb": "Croaks, knocks and bell-like gurgles. Ravens keep different calls for different companions.",
+  "clips": [
+   {
+    "file": "raven_0.mp3",
+    "duration": 0.848,
+    "score": 14.61,
+    "xc_id": "1077707",
+    "source": "https://xeno-canto.org/1077707",
+    "recordist": "Esperanza Poveda",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Spain"
+   },
+   {
+    "file": "raven_1.mp3",
+    "duration": 0.464,
+    "score": 7.13,
+    "xc_id": "1073200",
+    "source": "https://xeno-canto.org/1073200",
+    "recordist": "Greg Irving",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "United States of America"
+   },
+   {
+    "file": "raven_2.mp3",
+    "duration": 0.789,
+    "score": 6.35,
+    "xc_id": "1077714",
+    "source": "https://xeno-canto.org/1077714",
+    "recordist": "Esperanza Poveda",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Spain"
+   }
+  ]
+ },
+ "magpie": {
+  "common": "Australian Magpie",
+  "scientific": "Gymnorhina tibicen",
+  "pack": "classic",
+  "blurb": "Not really a magpie. Its dawn carolling is an organ-like warble and one of the great bird songs.",
+  "clips": [
+   {
+    "file": "magpie_0.mp3",
+    "duration": 3.437,
+    "score": 27.9,
+    "xc_id": "1085646",
+    "source": "https://xeno-canto.org/1085646",
+    "recordist": "Marcin Przymencki",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Australia"
+   },
+   {
+    "file": "magpie_1.mp3",
+    "duration": 1.811,
+    "score": 25.59,
+    "xc_id": "1086678",
+    "source": "https://xeno-canto.org/1086678",
+    "recordist": "Marc Anderson",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Australia"
+   },
+   {
+    "file": "magpie_2.mp3",
+    "duration": 1.556,
+    "score": 6.88,
+    "xc_id": "1073083",
+    "source": "https://xeno-canto.org/1073083",
+    "recordist": "Nick Talbot",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Australia"
+   }
+  ]
+ },
+ "butcherbird": {
+  "common": "Pied Butcherbird",
+  "scientific": "Cracticus nigrogularis",
+  "pack": "classic",
+  "blurb": "Pure flute-like phrases delivered slowly before dawn. Neighbors answer back with variations.",
+  "clips": [
+   {
+    "file": "butcherbird_0.mp3",
+    "duration": 1.312,
+    "score": 5.37,
+    "xc_id": "1074081",
+    "source": "https://xeno-canto.org/1074081",
+    "recordist": "Stephen Matthews",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Australia"
+   },
+   {
+    "file": "butcherbird_1.mp3",
+    "duration": 1.033,
+    "score": 4.64,
+    "xc_id": "937053",
+    "source": "https://xeno-canto.org/937053",
+    "recordist": "John McClean",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Australia"
+   },
+   {
+    "file": "butcherbird_2.mp3",
+    "duration": 0.569,
+    "score": 3.27,
+    "xc_id": "1066513",
+    "source": "https://xeno-canto.org/1066513",
+    "recordist": "Peter Boesman",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Australia"
+   }
+  ]
+ },
+ "barredowl": {
+  "common": "Barred Owl",
+  "scientific": "Strix varia",
+  "pack": "classic",
+  "blurb": "The hoot is usually written down as who cooks for you, who cooks for you all.",
+  "clips": [
+   {
+    "file": "barredowl_0.mp3",
+    "duration": 1.068,
+    "score": 23.15,
+    "xc_id": "1141309",
+    "source": "https://xeno-canto.org/1141309",
+    "recordist": "Scott Olmstead",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "United States of America"
+   },
+   {
+    "file": "barredowl_1.mp3",
+    "duration": 1.091,
+    "score": 12.41,
+    "xc_id": "1083912",
+    "source": "https://xeno-canto.org/1083912",
+    "recordist": "Greg Irving",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "United States of America"
+   },
+   {
+    "file": "barredowl_2.mp3",
+    "duration": 0.975,
+    "score": 11.24,
+    "xc_id": "1002439",
+    "source": "https://xeno-canto.org/1002439",
+    "recordist": "steve",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "United States of America"
+   }
+  ]
+ },
+ "barnowl": {
+  "common": "Barn Owl",
+  "scientific": "Tyto alba",
+  "pack": "classic",
+  "blurb": "Does not hoot. Delivers a long harsh shriek in flight, which is where a lot of haunted houses got it.",
+  "clips": [
+   {
+    "file": "barnowl_0.mp3",
+    "duration": 2.543,
+    "score": 30.0,
+    "xc_id": "1074746",
+    "source": "https://xeno-canto.org/1074746",
+    "recordist": "Pere Josa",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Spain"
+   },
+   {
+    "file": "barnowl_1.mp3",
+    "duration": 1.544,
+    "score": 30.0,
+    "xc_id": "1074747",
+    "source": "https://xeno-canto.org/1074747",
+    "recordist": "Pere Josa",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Spain"
+   },
+   {
+    "file": "barnowl_2.mp3",
+    "duration": 1.231,
+    "score": 21.0,
+    "xc_id": "1074745",
+    "source": "https://xeno-canto.org/1074745",
+    "recordist": "Pere Josa",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Spain"
+   }
+  ]
+ },
+ "blackbird": {
+  "common": "Common Blackbird",
+  "scientific": "Turdus merula",
+  "pack": "classic",
+  "blurb": "A low fluting song from a rooftop at dusk, finished off with a scratchy little flourish.",
+  "clips": [
+   {
+    "file": "blackbird_0.mp3",
+    "duration": 0.778,
+    "score": 20.61,
+    "xc_id": "1071666",
+    "source": "https://xeno-canto.org/1071666",
+    "recordist": "Cedric Mroczko",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Spain"
+   },
+   {
+    "file": "blackbird_1.mp3",
+    "duration": 0.58,
+    "score": 6.29,
+    "xc_id": "1072623",
+    "source": "https://xeno-canto.org/1072623",
+    "recordist": "Johannes Worona",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Germany"
+   },
+   {
+    "file": "blackbird_2.mp3",
+    "duration": 0.836,
+    "score": 4.82,
+    "xc_id": "1073333",
+    "source": "https://xeno-canto.org/1073333",
+    "recordist": "Morgan Demus",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "France"
+   }
+  ]
+ },
+ "sandhill": {
+  "common": "Sandhill Crane",
+  "scientific": "Antigone canadensis",
+  "pack": "classic",
+  "blurb": "A rolling bugle from a windpipe coiled inside the breastbone, carrying more than two miles.",
+  "clips": [
+   {
+    "file": "sandhill_0.mp3",
+    "duration": 0.848,
+    "score": 15.72,
+    "xc_id": "1020296",
+    "source": "https://xeno-canto.org/1020296",
+    "recordist": "Stanislas Wroza",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Canada"
+   },
+   {
+    "file": "sandhill_1.mp3",
+    "duration": 0.464,
+    "score": 11.95,
+    "xc_id": "1013967",
+    "source": "https://xeno-canto.org/1013967",
+    "recordist": "Stanislas Wroza",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Canada"
+   },
+   {
+    "file": "sandhill_2.mp3",
+    "duration": 0.998,
+    "score": 7.73,
+    "xc_id": "976705",
+    "source": "https://xeno-canto.org/976705",
+    "recordist": "Kalvin Chan",
+    "license": "CC BY-NC 4.0",
+    "license_url": "http://creativecommons.org/licenses/by-nc/4.0/legalcode",
+    "country": "Canada"
    }
   ]
  }

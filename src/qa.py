@@ -7,6 +7,9 @@ or that appear to be cut off while still loud.
 import json, os, subprocess, sys
 import numpy as np
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from make_clips import LOW_BIRDS, MAX_DUR, DEFAULT_MAX
+
 SR = 22050
 
 
@@ -74,13 +77,20 @@ def main():
             if not r:
                 problems.append((c["file"], "decode failed")); continue
             flags = []
+            # Two classes of expected result are not defects: birds that
+            # genuinely boom below 300 Hz, and long continuous calls trimmed
+            # at the per-species duration cap.
+            low_ok = key in LOW_BIRDS
+            cap = MAX_DUR.get(key, DEFAULT_MAX)
+            at_cap = r["dur"] >= cap - 0.15
+
             if r["active"] < 0.18: flags.append("mostly-silent")
             if r["rms_db"] < -30: flags.append("quiet")
-            if r["low_frac"] > 0.55: flags.append("rumble")
+            if r["low_frac"] > 0.55 and not low_ok: flags.append("rumble")
             # A short one-shot ending loud is a punchy clip, not a truncation.
-            # Only long clips still at full level are genuinely cut short.
-            if r["tail"] > 0.55 and r["dur"] > 1.2: flags.append("cut-off")
-            if r["centroid"] < 220: flags.append("very-low")
+            if r["tail"] > 0.55 and r["dur"] > 1.2 and not at_cap:
+                flags.append("cut-off")
+            if r["centroid"] < 220 and not low_ok: flags.append("very-low")
             print(f"{c['file']:18s} {r['dur']:5.2f} {r['peak_db']:6.1f} {r['rms_db']:6.1f} "
                   f"{r['active']:5.2f} {r['centroid']:6d} {r['low_frac']:5.2f} {r['tail']:5.2f}  "
                   f"{','.join(flags)}")
