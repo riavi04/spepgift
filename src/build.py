@@ -99,12 +99,26 @@ def main():
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(body)
 
+    page = ('<!doctype html>\n<html lang="en">\n<head>\n'
+            '<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+            '<meta name="description" content="A soundboard where every sound is a bird. '
+            '70 species, a track generator and a step sequencer.">\n'
+            '<meta name="theme-color" content="#050a12">\n'
+            '</head>\n<body>\n' + body + '\n</body>\n</html>\n')
+
     standalone = os.path.join(os.path.dirname(out_path), "standalone.html")
     with open(standalone, "w", encoding="utf-8") as f:
-        f.write('<!doctype html>\n<html lang="en">\n<head>\n'
-                '<meta charset="utf-8">\n'
-                '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
-                '</head>\n<body>\n' + body + '\n</body>\n</html>\n')
+        f.write(page)
+
+    # GitHub Pages serves this one. Kept in docs/ so Pages can be pointed at a
+    # folder without the 6 MB page sitting in the repository root.
+    docs = os.path.join(ROOT, "docs")
+    os.makedirs(docs, exist_ok=True)
+    with open(os.path.join(docs, "index.html"), "w", encoding="utf-8") as f:
+        f.write(page)
+    # Stops Pages running the file through Jekyll.
+    open(os.path.join(docs, ".nojekyll"), "w").close()
 
     print(f"birds:  {len(manifest)}")
     print(f"clips:  {len(audio)}  ({total/1024:.0f} KB raw)")
@@ -112,6 +126,7 @@ def main():
     print(f"fonts:  {len(faces)}  ({font_bytes/1024:.0f} KB raw)")
     print(f"artifact:   {out_path}  ({os.path.getsize(out_path)/1024/1024:.2f} MB)")
     print(f"standalone: {standalone}  ({os.path.getsize(standalone)/1024/1024:.2f} MB)")
+    print(f"pages:      {os.path.join(docs, 'index.html')}")
 
 
 if __name__ == "__main__":

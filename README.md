@@ -31,6 +31,32 @@ dist/
   sound-bird.html   the finished single file
 ```
 
+## Putting it online
+
+`build.py` writes `docs/index.html`, which is what GitHub Pages serves. To
+publish, from this directory:
+
+```sh
+gh auth login                       # once, in your own browser
+gh repo create soundbird --public --source=. --remote=origin --push
+gh api -X POST repos/:owner/soundbird/pages \
+  -f 'source[branch]=main' -f 'source[path]=/docs'
+```
+
+The site then appears at `https://<your-username>.github.io/soundbird/`, usually
+within a minute or two.
+
+Two things to weigh before making it public:
+
+- **It is personal.** The intro cards are written to one person by name. A
+  public repository and a public Pages site are both world-readable.
+- **The licenses come with you.** The recordings are non-commercial, and
+  several photographs are ShareAlike, which applies to the resized copies here.
+  `CREDITS.md` lists every recordist and photographer, and the site credits them
+  on each card, which is what those licenses ask for.
+
+To take it down later: `gh repo delete soundbird`.
+
 ## Rebuilding
 
 ```sh
