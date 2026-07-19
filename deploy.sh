@@ -11,4 +11,4 @@ else
   git commit -q -m "${1:-Update soundbird}"
 fi
 git push -q origin main
-echo "pushed. live in a minute at https://riavi04.github.io/soundbird/"
+echo "pushed. live in a minute at https://riavi04.github.io/spepgift/"

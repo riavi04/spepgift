@@ -1,6 +1,6 @@
 # soundbird
 
-**Live at <https://riavi04.github.io/soundbird/>**
+**Live at <https://riavi04.github.io/spepgift/>**
 
 A soundboard where every sound is a bird. Generates tracks from real wild bird
 recordings, or lets you build your own patterns by hand. 70 species, each with
@@ -34,34 +34,9 @@ dist/
   sound-bird.html   the finished single file
 ```
 
-## Putting it online
-
-`build.py` writes `docs/index.html`, which is what GitHub Pages serves. To
-publish, from this directory:
-
-```sh
-gh auth login                       # once, in your own browser
-gh repo create soundbird --public --source=. --remote=origin --push
-echo '{"source":{"branch":"main","path":"/docs"}}' \
-  | gh api -X POST repos/:owner/soundbird/pages --input -
-```
-
-If that last command is awkward, the repository's Settings page does the same
-thing: **Pages → Source: Deploy from a branch → main → /docs → Save**.
-
-The site then appears at `https://<your-username>.github.io/soundbird/`, usually
-within a minute or two.
-
-Two things to weigh before making it public:
-
-- **It is personal.** The intro cards are written to one person by name. A
-  public repository and a public Pages site are both world-readable.
-- **The licenses come with you.** The recordings are non-commercial, and
-  several photographs are ShareAlike, which applies to the resized copies here.
-  `CREDITS.md` lists every recordist and photographer, and the site credits them
-  on each card, which is what those licenses ask for.
-
-To take it down later: `gh repo delete soundbird`.
+The repository is named `spepgift`, which is what the address and the link
+preview use. The site itself is still called soundbird. See
+[DEPLOY.md](DEPLOY.md) for publishing and for what the licenses require.
 
 ## Rebuilding
 

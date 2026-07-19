@@ -1,6 +1,6 @@
-# Publishing soundbird
+# Publishing spepgift
 
-The site is live at **<https://riavi04.github.io/soundbird/>**, served by GitHub
+The site is live at **<https://riavi04.github.io/spepgift/>**, served by GitHub
 Pages from the `docs/` folder of this repository.
 
 ## Updating it
@@ -28,7 +28,7 @@ rebuild plus push is all a deploy needs.
 
 Either works:
 
-- The live site: <https://riavi04.github.io/soundbird/>
+- The live site: <https://riavi04.github.io/spepgift/>
 - The Claude artifact:
   <https://claude.ai/code/artifact/9b05c645-905f-474a-8e58-41155d2f3cfc>
 
