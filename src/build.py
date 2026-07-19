@@ -12,6 +12,11 @@ CLIPS = os.path.join(ROOT, "assets", "clips")
 PHOTOS = os.path.join(ROOT, "assets", "photos")
 FONTS = os.path.join(ROOT, "assets", "fonts")
 
+# What a shared link calls itself: the browser tab, and the title in the
+# preview card that chat apps build when the link is pasted.
+PAGE_TITLE = "spepgift"
+PAGE_BLURB = "a soundboard, but every sound is a bird"
+
 # EB Garamond, inlined as data URIs. The page's CSP blocks font CDNs, and a
 # linked webfont would fail silently and fall back to something else.
 FONT_FACES = [
@@ -81,7 +86,7 @@ def main():
             % (style, weight, b64))
 
     parts = [
-        "<title>soundbird</title>",
+        f"<title>{PAGE_TITLE}</title>",
         "<style>\n" + "\n".join(faces) + "\n</style>",
         "<style>\n" + read(os.path.join(SRC, "style.css")) + "\n</style>",
         read(os.path.join(SRC, "index.html")),
@@ -99,12 +104,19 @@ def main():
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(body)
 
+    # Open Graph is what chat apps read to build the preview card when the link
+    # is pasted, so the title there matches the tab rather than the folder name.
     page = ('<!doctype html>\n<html lang="en">\n<head>\n'
             '<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
-            '<meta name="description" content="A soundboard where every sound is a bird. '
-            '70 species, a track generator and a step sequencer.">\n'
+            f'<meta name="description" content="{PAGE_BLURB}">\n'
             '<meta name="theme-color" content="#050a12">\n'
+            f'<meta property="og:title" content="{PAGE_TITLE}">\n'
+            f'<meta property="og:description" content="{PAGE_BLURB}">\n'
+            '<meta property="og:type" content="website">\n'
+            f'<meta name="twitter:title" content="{PAGE_TITLE}">\n'
+            f'<meta name="twitter:description" content="{PAGE_BLURB}">\n'
+            '<meta name="twitter:card" content="summary">\n'
             '</head>\n<body>\n' + body + '\n</body>\n</html>\n')
 
     standalone = os.path.join(os.path.dirname(out_path), "standalone.html")
