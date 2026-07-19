@@ -44,21 +44,31 @@ function euclid(k, n, rotate = 0) {
 }
 
 /* ---------- mood presets ---------- */
+/* The birds are the song; the band is the accompaniment. `support` scales
+   everything synthesised, `birdGain` scales the calls, and `maxPerStep` caps
+   how many birds may land on one step. That cap is what keeps a fast, busy
+   setting sounding like a beat rather than a pile of noise: without space
+   between hits there is no pulse to hear.
+   `clipSteps` bounds how long a single call may ring, in sixteenths, so calls
+   stop before the next one lands instead of smearing across the bar. */
 const MOODS = {
   chill: {
-    bpm: [88, 104], swing: 0.14, drumDensity: 0.45, birdDensity: 0.4,
+    bpm: [90, 104], swing: 0.14, drumDensity: 0.4, birdDensity: 0.5,
     reverb: 0.42, delay: 0.28, maxLanes: 3, pitchRange: [-4, 7],
-    scale: SCALE_MINOR_PENTA, arp: 0.25, label: "chill",
+    scale: SCALE_MINOR_PENTA, arp: 0.15, clipSteps: 8,
+    support: 0.66, birdGain: 1.25, maxPerStep: 2, label: "chill",
   },
   upbeat: {
-    bpm: [124, 138], swing: 0.09, drumDensity: 0.72, birdDensity: 0.72,
-    reverb: 0.26, delay: 0.3, maxLanes: 5, pitchRange: [-5, 10],
-    scale: PENTA, arp: 0.65, label: "upbeat",
+    bpm: [122, 136], swing: 0.09, drumDensity: 0.58, birdDensity: 0.75,
+    reverb: 0.26, delay: 0.3, maxLanes: 4, pitchRange: [-5, 10],
+    scale: PENTA, arp: 0.3, clipSteps: 5,
+    support: 0.7, birdGain: 1.2, maxPerStep: 2, label: "upbeat",
   },
   chaos: {
-    bpm: [142, 168], swing: 0.03, drumDensity: 0.9, birdDensity: 1.0,
-    reverb: 0.2, delay: 0.45, maxLanes: 7, pitchRange: [-7, 14],
-    scale: PENTA, arp: 0.85, label: "chaos",
+    bpm: [138, 156], swing: 0.05, drumDensity: 0.72, birdDensity: 0.9,
+    reverb: 0.2, delay: 0.4, maxLanes: 5, pitchRange: [-7, 12],
+    scale: PENTA, arp: 0.35, clipSteps: 4,
+    support: 0.64, birdGain: 1.25, maxPerStep: 3, label: "chaos",
   },
 };
 
@@ -94,7 +104,9 @@ function makeSoftClip(ctx) {
 
 function buildGraph(ctx, opts = {}) {
   const master = ctx.createGain();
-  master.gain.value = opts.master ?? 0.72;
+  // Leaving more space between hits lowered the average level, so the master
+  // comes up to compensate. The limiter downstream still caps the peaks.
+  master.gain.value = opts.master ?? 0.86;
 
   const comp = ctx.createDynamicsCompressor();
   comp.threshold.value = -16;

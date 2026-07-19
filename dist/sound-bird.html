@@ -452,7 +452,7 @@ footer.foot{
 
     <div class="panel">
       <h2>Flock mode</h2>
-      <p class="lede">Mute a bird to strip the track back, or solo one to hear it alone. Changes apply while it plays.</p>
+      <p class="lede">The birds carry the tune. One leads on the beat, one answers between the beats, and the rest fill in behind. Mute a bird to strip the track back, or solo one to hear it alone. Changes apply while it plays.</p>
       <div class="lanes" id="lanes"><div class="empty">No track loaded yet.</div></div>
     </div>
 
@@ -563,21 +563,31 @@ function euclid(k, n, rotate = 0) {
 }
 
 /* ---------- mood presets ---------- */
+/* The birds are the song; the band is the accompaniment. `support` scales
+   everything synthesised, `birdGain` scales the calls, and `maxPerStep` caps
+   how many birds may land on one step. That cap is what keeps a fast, busy
+   setting sounding like a beat rather than a pile of noise: without space
+   between hits there is no pulse to hear.
+   `clipSteps` bounds how long a single call may ring, in sixteenths, so calls
+   stop before the next one lands instead of smearing across the bar. */
 const MOODS = {
   chill: {
-    bpm: [88, 104], swing: 0.14, drumDensity: 0.45, birdDensity: 0.4,
+    bpm: [90, 104], swing: 0.14, drumDensity: 0.4, birdDensity: 0.5,
     reverb: 0.42, delay: 0.28, maxLanes: 3, pitchRange: [-4, 7],
-    scale: SCALE_MINOR_PENTA, arp: 0.25, label: "chill",
+    scale: SCALE_MINOR_PENTA, arp: 0.15, clipSteps: 8,
+    support: 0.66, birdGain: 1.25, maxPerStep: 2, label: "chill",
   },
   upbeat: {
-    bpm: [124, 138], swing: 0.09, drumDensity: 0.72, birdDensity: 0.72,
-    reverb: 0.26, delay: 0.3, maxLanes: 5, pitchRange: [-5, 10],
-    scale: PENTA, arp: 0.65, label: "upbeat",
+    bpm: [122, 136], swing: 0.09, drumDensity: 0.58, birdDensity: 0.75,
+    reverb: 0.26, delay: 0.3, maxLanes: 4, pitchRange: [-5, 10],
+    scale: PENTA, arp: 0.3, clipSteps: 5,
+    support: 0.7, birdGain: 1.2, maxPerStep: 2, label: "upbeat",
   },
   chaos: {
-    bpm: [142, 168], swing: 0.03, drumDensity: 0.9, birdDensity: 1.0,
-    reverb: 0.2, delay: 0.45, maxLanes: 7, pitchRange: [-7, 14],
-    scale: PENTA, arp: 0.85, label: "chaos",
+    bpm: [138, 156], swing: 0.05, drumDensity: 0.72, birdDensity: 0.9,
+    reverb: 0.2, delay: 0.4, maxLanes: 5, pitchRange: [-7, 12],
+    scale: PENTA, arp: 0.35, clipSteps: 4,
+    support: 0.64, birdGain: 1.25, maxPerStep: 3, label: "chaos",
   },
 };
 
@@ -613,7 +623,9 @@ function makeSoftClip(ctx) {
 
 function buildGraph(ctx, opts = {}) {
   const master = ctx.createGain();
-  master.gain.value = opts.master ?? 0.72;
+  // Leaving more space between hits lowered the average level, so the master
+  // comes up to compensate. The limiter downstream still caps the peaks.
+  master.gain.value = opts.master ?? 0.86;
 
   const comp = ctx.createDynamicsCompressor();
   comp.threshold.value = -16;
@@ -905,7 +917,10 @@ function generateSong(seed, moodKey, birds, opts = {}) {
   const root = 48 + rnd.i(5);                  // low C..E, bass register
   const kickPat = rnd.pick(KICK_PATS);
   const snarePat = rnd.pick(SNARE_PATS);
-  const hatPat = euclid(rnd.chance(0.5) ? 8 : 11, 16, rnd.i(4));
+  // Hats are the main source of clutter, so their density follows the mood
+  // rather than being fixed. This is what drumDensity is for.
+  const hatK = Math.max(2, Math.round((rnd.chance(0.5) ? 8 : 11) * m.drumDensity));
+  const hatPat = euclid(hatK, 16, rnd.i(4));
   const bassPat = euclid(4 + rnd.i(4), 16, rnd.i(3));
 
   // Chords are root/fifth/octave stacks: no thirds, so nothing ever clashes
@@ -921,31 +936,53 @@ function generateSong(seed, moodKey, birds, opts = {}) {
     chosen.push(pool.splice(rnd.i(pool.length), 1)[0]);
   }
 
+  // Lanes are cast into roles rather than all improvising at once. The lead
+  // states the hook on the strong beats, the answer replies between them, and
+  // anything further back is quiet texture. Random euclidean patterns on every
+  // lane produced no downbeat and therefore nothing to hear a pulse against.
+  const LEAD_STEPS = [
+    [0, 4, 8, 12], [0, 4, 7, 12], [0, 3, 8, 12],
+    [0, 4, 8, 11, 14], [0, 6, 8, 12], [0, 4, 8],
+  ];
+  const ANSWER_STEPS = [
+    [2, 6, 10, 14], [6, 14], [2, 10, 14], [4, 10, 12], [6, 10, 14],
+  ];
+  const ROLE_GAIN = { lead: 1.0, answer: 0.82, texture: 0.6 };
+
   const lanes = chosen.map((b, i) => {
-    const melodic = i < 2 ? rnd.chance(0.75) : rnd.chance(0.35);
-    const k = Math.max(1, Math.round((2 + rnd.i(5)) * m.birdDensity));
-    const pattern = euclid(k, 16, rnd.i(8));
-    const motif = makeMotif(scale, m.pitchRange, 8);
-    const hits = [];
-    let mi = 0;
-    for (let s = 0; s < 16; s++) {
-      if (!pattern[s]) continue;
-      const semi = melodic ? motif[mi++ % motif.length]
-                           : (rnd.chance(0.25) ? rnd.pick(scale) : motif[0]);
-      hits.push({
-        step: s,
-        semi,
-        gain: 0.55 + rnd.f(0.4),
-      });
+    const role = i === 0 ? "lead" : i === 1 ? "answer" : "texture";
+    let steps;
+    if (role === "lead") {
+      steps = rnd.pick(LEAD_STEPS).slice();
+    } else if (role === "answer") {
+      steps = rnd.pick(ANSWER_STEPS).slice();
+    } else {
+      // Rotated by whole eighths so texture still lands on the grid.
+      const k = Math.max(1, Math.round((1 + rnd.i(3)) * m.birdDensity));
+      const pat = euclid(k, 16, rnd.i(4) * 2);
+      steps = [];
+      for (let s = 0; s < 16; s++) if (pat[s]) steps.push(s);
     }
+
+    const melodic = role === "lead" ? true : role === "answer" ? rnd.chance(0.6)
+                                                              : rnd.chance(0.2);
+    const motif = makeMotif(scale, m.pitchRange, 6);
+    const fixed = rnd.pick(scale);
+    const hits = steps.map((s, n) => ({
+      step: s,
+      semi: melodic ? motif[n % motif.length] : fixed,
+      // Accent the downbeat so the bar has an audible edge.
+      gain: ROLE_GAIN[role] * (s === 0 ? 1.0 : s % 4 === 0 ? 0.92 : 0.78),
+    }));
+
     return {
       id: `lane${i}`,
       bird: b.key,
       common: b.common,
       clip: rnd.i(b.clipCount),
-      melodic,
+      melodic, role,
       hits,
-      pan: laneCount === 1 ? 0 : (i / (laneCount - 1)) * 1.2 - 0.6,
+      pan: laneCount === 1 ? 0 : (i / (laneCount - 1)) * 1.1 - 0.55,
       // Which sections this lane appears in, so the arrangement breathes.
       enter: i === 0 ? 0 : rnd.i(3),
       muted: false,
@@ -954,12 +991,30 @@ function generateSong(seed, moodKey, birds, opts = {}) {
     };
   });
 
+  // Enforce the per-step cap, dropping from the quietest lanes first so the
+  // lead and answer keep their place.
+  const perStep = {};
+  for (const lane of lanes) {
+    if (lane.role === "lead" || lane.role === "answer") {
+      for (const h of lane.hits) perStep[h.step] = (perStep[h.step] || 0) + 1;
+    }
+  }
+  for (const lane of lanes) {
+    if (lane.role !== "texture") continue;
+    lane.hits = lane.hits.filter((h) => {
+      if ((perStep[h.step] || 0) >= m.maxPerStep) return false;
+      perStep[h.step] = (perStep[h.step] || 0) + 1;
+      return true;
+    });
+  }
+
   return {
     seed, mood: moodKey, bpm, swing: m.swing, bars: totalBars,
     sections, scale, root, chords,
     kickPat, snarePat, hatPat, bassPat,
     arp: rnd.f(1) < m.arp,
     reverb: m.reverb, delay: m.delay,
+    support: m.support, birdGain: m.birdGain, clipSteps: m.clipSteps,
     lanes,
     name: trackName(chosen.map((c) => c.common)),
     seconds: totalBars * barDur,
@@ -1011,33 +1066,44 @@ function eventsForStep(song, absStep) {
   const barInSec = bar - sec.startBar;
   const isFill = barInSec === sec.bars - 1 && step >= 12 && I >= 0.6;
 
-  // Drums
+  // Everything synthesised is scaled back by `support`: it is here to hold the
+  // beat together underneath the birds, not to compete with them.
+  const sup = song.support ?? 0.75;
+
+  // Drums. The kick and snare are kept honest because they are what makes the
+  // pulse audible; the busier hats are pulled further down.
   if (sec.name !== "intro" || I > 0.3) {
-    if (song.kickPat[step] && I >= 0.4) out.push({ type: "kick", gain: 0.95 * (0.6 + 0.4 * I) });
-    if (song.snarePat[step] && I >= 0.55) out.push({ type: "snare", gain: 0.6 * I });
-    if (song.hatPat[step] && I >= 0.35) {
-      out.push({ type: "hat", gain: (step % 4 === 0 ? 0.34 : 0.2) * I, open: step % 8 === 6 && I > 0.8 });
+    if (song.kickPat[step] && I >= 0.4) {
+      out.push({ type: "kick", gain: 0.95 * (0.6 + 0.4 * I) * sup });
+    }
+    if (song.snarePat[step] && I >= 0.55) out.push({ type: "snare", gain: 0.55 * I * sup });
+    if (song.hatPat[step] && I >= 0.35 && (step % 2 === 0 || I > 0.75)) {
+      out.push({ type: "hat", gain: (step % 4 === 0 ? 0.26 : 0.15) * I * sup,
+                 open: step % 8 === 6 && I > 0.8 });
     }
   }
-  if (isFill && step % 2 === 0) out.push({ type: "snare", gain: 0.35 + 0.1 * (step - 12) });
+  if (isFill && step % 2 === 0) {
+    out.push({ type: "snare", gain: (0.3 + 0.08 * (step - 12)) * sup });
+  }
 
   // Bass
   if (song.bassPat[step] && I >= 0.5) {
     const chord = song.chords[Math.floor(bar / 2) % song.chords.length];
-    out.push({ type: "bass", midi: chord[0] - 12, dur: 0.2, gain: 0.5 * I });
+    out.push({ type: "bass", midi: chord[0] - 12, dur: 0.2, gain: 0.42 * I * sup });
   }
 
   // Pad, once every two bars
   if (step === 0 && bar % 2 === 0) {
     const chord = song.chords[Math.floor(bar / 2) % song.chords.length];
-    out.push({ type: "pad", midis: chord.map((c) => c + 12), dur: (60 / song.bpm) * 8, gain: 0.1 * (0.5 + I) });
+    out.push({ type: "pad", midis: chord.map((c) => c + 12),
+               dur: (60 / song.bpm) * 8, gain: 0.075 * (0.5 + I) * sup });
   }
 
-  // Arp sparkle in the busy sections
-  if (song.arp && I >= 0.9 && step % 2 === 1) {
+  // Arp sparkle, on the offbeat only and well back in the mix.
+  if (song.arp && I >= 0.9 && step % 4 === 3) {
     const chord = song.chords[Math.floor(bar / 2) % song.chords.length];
     const note = chord[(step + bar) % chord.length] + 24;
-    out.push({ type: "pluck", midi: note, gain: 0.09 });
+    out.push({ type: "pluck", midi: note, gain: 0.055 * sup });
   }
 
   // Birds
@@ -1050,7 +1116,9 @@ function eventsForStep(song, absStep) {
       if (I < 0.6 && (h.step % 4 !== 0)) continue;
       out.push({
         type: "bird", lane: lane.id, birdKey: lane.bird, clip: lane.clip,
-        semitones: h.semi, gain: h.gain * (0.55 + 0.45 * I), pan: lane.pan,
+        semitones: h.semi,
+        gain: h.gain * (0.55 + 0.45 * I) * (song.birdGain ?? 1),
+        pan: lane.pan,
       });
     }
   });
@@ -1155,7 +1223,10 @@ const Player = {
             gain: ev.gain,
             pan: ev.pan,
             laneGain: laneGains[ev.lane] || null,
-            maxDur: this.stepDur(song) * 8,
+            // Bounded so a long call stops before the next one lands. Left to
+            // ring, overlapping calls smear into each other and the rhythm
+            // disappears, which is what made the busiest setting formless.
+            maxDur: this.stepDur(song) * (song.clipSteps || 6),
           });
           break;
         }
@@ -1576,6 +1647,12 @@ function renderNow() {
   $("#dlbtn").disabled = false;
 }
 
+const ROLE_LABEL = {
+  lead: "lead, on the beat",
+  answer: "answers between beats",
+  texture: "texture",
+};
+
 function renderLanes() {
   const box = $("#lanes");
   box.innerHTML = "";
@@ -1587,7 +1664,8 @@ function renderLanes() {
     const sp = BIRDS[lane.bird] || {};
     row.innerHTML = `
       <span class="pip"></span>
-      <div class="nm">${lane.common}<small>${sp.scientific || ""}${lane.melodic ? " · melody" : " · rhythm"}</small></div>
+      <div class="nm">${lane.common}<small>${sp.scientific || ""}${
+        lane.role ? " · " + ROLE_LABEL[lane.role] : ""}</small></div>
       <button class="tog solo" title="solo">S</button>
       <button class="tog mute" title="mute">M</button>`;
     row.querySelector(".solo").onclick = () => {

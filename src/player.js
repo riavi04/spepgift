@@ -93,7 +93,10 @@ const Player = {
             gain: ev.gain,
             pan: ev.pan,
             laneGain: laneGains[ev.lane] || null,
-            maxDur: this.stepDur(song) * 8,
+            // Bounded so a long call stops before the next one lands. Left to
+            // ring, overlapping calls smear into each other and the rhythm
+            // disappears, which is what made the busiest setting formless.
+            maxDur: this.stepDur(song) * (song.clipSteps || 6),
           });
           break;
         }

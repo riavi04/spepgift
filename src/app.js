@@ -193,6 +193,12 @@ function renderNow() {
   $("#dlbtn").disabled = false;
 }
 
+const ROLE_LABEL = {
+  lead: "lead, on the beat",
+  answer: "answers between beats",
+  texture: "texture",
+};
+
 function renderLanes() {
   const box = $("#lanes");
   box.innerHTML = "";
@@ -204,7 +210,8 @@ function renderLanes() {
     const sp = BIRDS[lane.bird] || {};
     row.innerHTML = `
       <span class="pip"></span>
-      <div class="nm">${lane.common}<small>${sp.scientific || ""}${lane.melodic ? " · melody" : " · rhythm"}</small></div>
+      <div class="nm">${lane.common}<small>${sp.scientific || ""}${
+        lane.role ? " · " + ROLE_LABEL[lane.role] : ""}</small></div>
       <button class="tog solo" title="solo">S</button>
       <button class="tog mute" title="mute">M</button>`;
     row.querySelector(".solo").onclick = () => {

@@ -9,7 +9,7 @@ const SRC = __dirname;
 // object, so re-expose the few values the test needs to read directly.
 const code = ["engine.js", "generate.js"]
   .map((f) => fs.readFileSync(path.join(SRC, f), "utf8"))
-  .join("\n") + "\n;globalThis.STEPS_PER_BAR = STEPS_PER_BAR; globalThis.MOODS = MOODS;";
+  .join("\n") + "\n;globalThis.STEPS_PER_BAR = STEPS_PER_BAR; globalThis.MOODS = MOODS; globalThis.sectionAt = sectionAt;";
 
 const ctx = { console, Math, window: {}, performance: { now: () => 0 } };
 vm.createContext(ctx);
@@ -33,8 +33,26 @@ for (const mood of ["chill", "upbeat", "chaos"]) {
     const total = song.bars * ctx.STEPS_PER_BAR;
     let counts = { kick: 0, snare: 0, hat: 0, bass: 0, pad: 0, pluck: 0, bird: 0 };
     const usedLanes = new Set();
+    // Rhythm and balance: how crowded any one step gets, whether bars start
+    // with a bird, and how loud the birds are next to the backing.
+    let maxPerStep = 0, birdGain = 0, supportGain = 0;
+    let barsWithDownbeatBird = 0, mainBars = 0;
     for (let s = 0; s < total; s++) {
       const evs = ctx.eventsFor(song, s);
+      const birdsHere = evs.filter((e) => e.type === "bird");
+      if (birdsHere.length > maxPerStep) maxPerStep = birdsHere.length;
+      for (const e of evs) {
+        if (e.type === "bird") birdGain += e.gain;
+        else if (e.type !== "pad") supportGain += e.gain;
+      }
+      if (s % 16 === 0) {
+        const bar = s / 16;
+        const sec = ctx.sectionAt(song, bar);
+        if (sec.intensity >= 0.9) {
+          mainBars++;
+          if (birdsHere.length) barsWithDownbeatBird++;
+        }
+      }
       for (const e of evs) {
         counts[e.type] = (counts[e.type] || 0) + 1;
         if (e.type === "bird") {
@@ -55,12 +73,25 @@ for (const mood of ["chill", "upbeat", "chaos"]) {
     check(counts.bird > 20, `${mood}: too few bird hits (${counts.bird})`);
     check(usedLanes.size >= 2, `${mood}: only ${usedLanes.size} lanes sounded`);
     check(song.name && song.name.length > 3, `${mood}: bad track name`);
+
+    // The rhythm guarantees. A cap that is exceeded, or bars that do not start
+    // with a bird, is what "no beat" sounded like.
+    const cap = ctx.MOODS[mood].maxPerStep;
+    check(maxPerStep <= cap, `${mood}: ${maxPerStep} birds on one step, cap is ${cap}`);
+    const downbeat = mainBars ? barsWithDownbeatBird / mainBars : 1;
+    check(downbeat >= 0.8, `${mood}: only ${(downbeat * 100).toFixed(0)}% of main bars open on a bird`);
+    check(birdGain > supportGain, `${mood}: backing (${supportGain.toFixed(0)}) louder than birds (${birdGain.toFixed(0)})`);
+
     stats.push({ secs: song.seconds, bpm: song.bpm, birds: counts.bird,
-                 drums: counts.kick + counts.snare + counts.hat, lanes: usedLanes.size });
+                 drums: counts.kick + counts.snare + counts.hat, lanes: usedLanes.size,
+                 maxStep: maxPerStep, ratio: birdGain / Math.max(1, supportGain),
+                 downbeat });
   }
   const avg = (k) => (stats.reduce((a, s) => a + s[k], 0) / stats.length).toFixed(1);
   console.log(`${mood.padEnd(7)} len ${avg("secs")}s  bpm ${avg("bpm")}  ` +
-              `birdhits ${avg("birds")}  drumhits ${avg("drums")}  lanes ${avg("lanes")}`);
+              `birdhits ${avg("birds")}  drumhits ${avg("drums")}  lanes ${avg("lanes")}  ` +
+              `max/step ${avg("maxStep")}  bird:backing ${avg("ratio")}  ` +
+              `downbeat ${(stats.reduce((a, s) => a + s.downbeat, 0) / stats.length * 100).toFixed(0)}%`);
 }
 
 // Determinism: the same seed must rebuild the same song.
