@@ -64,6 +64,13 @@ function playableBirds() {
   return Object.entries(BIRDS).filter(([k]) => Player.buffers[k] && Player.buffers[k].length);
 }
 
+/* Display order only. The generator picks birds by index out of playableBirds,
+   so reordering that would make an old seed produce a different set of birds
+   and every saved track would come back wrong. */
+function birdsByName() {
+  return playableBirds().sort((a, b) => a[1].common.localeCompare(b[1].common));
+}
+
 function poolFor(pack) {
   return playableBirds()
     .filter(([, v]) => pack === "all" || v.pack === pack)
@@ -507,7 +514,7 @@ function buildSequencer() {
   }
   const sel = $("#addbird");
   sel.innerHTML = '<option value="">choose a bird</option>';
-  playableBirds().forEach(([k, v]) => {
+  birdsByName().forEach(([k, v]) => {
     const o = document.createElement("option");
     o.value = k; o.textContent = v.common;
     sel.appendChild(o);
@@ -698,7 +705,7 @@ function randomisePattern() {
 function buildAviary(filter = "all") {
   const grid = $("#aviarygrid");
   grid.innerHTML = "";
-  const all = playableBirds();
+  const all = birdsByName();
   const list = all.filter(([, v]) => filter === "all" || v.pack === filter);
   const counter = $("#aviarycount");
   if (counter) {
