@@ -14,6 +14,8 @@
   --serif:"EB Garamond","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
   --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  /* Default tilt for a popped-up bird; each one overrides this inline. */
+  --tilt:-5deg;
 }
 /* This page commits to one visual world: a dark blue field at dusk. It does not
    offer a light theme, so tell the browser to render native controls to match
@@ -277,6 +279,17 @@ select{
 .cell.on{background:var(--accent);box-shadow:0 0 10px rgba(127,212,184,.35)}
 .cell.on.drum{background:var(--accent3);box-shadow:0 0 10px rgba(110,168,230,.35)}
 .cell.cur{outline:1px solid rgba(255,255,255,.5);outline-offset:1px}
+/* A visible seam at each bar line, so eight bars stay readable when scrolling. */
+.cell.barstart{box-shadow:inset 2px 0 0 rgba(127,212,184,.45)}
+.cell.on.barstart{box-shadow:0 0 10px rgba(127,212,184,.35),inset 2px 0 0 rgba(255,255,255,.5)}
+.seq th.barstart{color:var(--accent)}
+/* Longer patterns need smaller cells to stay scannable. */
+.seq.bars2 .cell{width:23px;height:23px}
+.seq.bars4 .cell{width:18px;height:18px;border-radius:4px}
+.seq.bars8 .cell{width:13px;height:13px;border-radius:3px}
+.seq.bars4{border-spacing:2px}
+.seq.bars8{border-spacing:2px}
+.seq.bars8 th{font-size:.55rem}
 .seq .semi{
   background:var(--panel2);border:1px solid var(--line);border-radius:6px;
   color:var(--txt);font-size:.7rem;padding:2px 4px;font-family:var(--mono);
@@ -330,6 +343,57 @@ select{
 .count{
   color:var(--muted);font-size:.75rem;font-family:var(--mono);
   font-variant-numeric:tabular-nums;letter-spacing:.02em;
+}
+
+/* ---------------- bird pop-ups ---------------- */
+/* Whoever is singing shows their face. Fixed so it works over the intro cards
+   as well as the app, and never intercepts clicks. */
+.popstage{
+  position:fixed;left:0;right:0;bottom:22px;z-index:70;
+  display:flex;justify-content:center;align-items:flex-end;gap:14px;
+  pointer-events:none;padding:0 16px;flex-wrap:wrap-reverse;
+}
+.pop{
+  width:104px;flex:none;text-align:center;
+  animation:popIn .42s cubic-bezier(.2,1.5,.4,1) both;
+}
+.pop.out{animation:popOut .3s ease-in forwards}
+.pop.again{animation:popAgain .28s cubic-bezier(.2,1.6,.4,1)}
+.pop img{
+  width:82px;height:82px;border-radius:50%;object-fit:cover;display:block;
+  margin:0 auto;border:2px solid rgba(127,212,184,.55);
+  box-shadow:0 6px 26px rgba(0,0,0,.55), 0 0 0 4px rgba(127,212,184,.09);
+  background:var(--panel2);
+}
+.pop b{
+  margin-top:6px;font-family:var(--sans);font-weight:500;
+  font-size:.64rem;letter-spacing:.02em;color:var(--txt);line-height:1.22;
+  text-shadow:0 2px 8px rgba(0,0,0,.95);
+  /* Two lines, because plenty of these names do not fit on one. */
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
+}
+@keyframes popIn{
+  from{opacity:0;transform:scale(.3) translateY(16px) rotate(var(--tilt,-5deg))}
+  to{opacity:1;transform:scale(1) translateY(0) rotate(var(--tilt,-5deg))}
+}
+@keyframes popAgain{
+  0%{transform:scale(1) rotate(var(--tilt,-5deg))}
+  45%{transform:scale(1.16) rotate(calc(var(--tilt,-5deg) * -1.3))}
+  100%{transform:scale(1) rotate(var(--tilt,-5deg))}
+}
+@keyframes popOut{
+  from{opacity:1;transform:scale(1) rotate(var(--tilt,-5deg))}
+  to{opacity:0;transform:scale(.6) translateY(10px) rotate(var(--tilt,-5deg))}
+}
+@media (max-width:640px){
+  .popstage{gap:9px;bottom:14px}
+  .pop{width:66px}
+  .pop img{width:58px;height:58px}
+  .pop b{font-size:.58rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .pop,.pop.again,.pop.out{animation:none}
 }
 
 .toast{

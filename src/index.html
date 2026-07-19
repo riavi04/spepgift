@@ -49,14 +49,14 @@
       </div>
     </div>
     <nav class="tabs">
-      <button data-view="generate" class="on">Generate</button>
+      <button data-view="aviary" class="on">Aviary</button>
+      <button data-view="generate">Generate</button>
       <button data-view="compose">Compose</button>
-      <button data-view="aviary">Aviary</button>
     </nav>
   </header>
 
   <!-- ============ GENERATE ============ -->
-  <section id="view-generate">
+  <section id="view-generate" class="hide">
     <div class="panel">
       <h2>Random remix</h2>
       <p class="lede">Pick a mood and a flock, then let it build you a track. Every track has a seed, so anything you save comes back exactly as it was.</p>
@@ -116,11 +116,27 @@
   <section id="view-compose" class="hide">
     <div class="panel">
       <h2>Build your own</h2>
-      <p class="lede">Each row is a bird or a drum. Click the squares to place hits. The number next to each bird shifts its pitch in semitones, which also makes it shorter and brighter as it goes up.</p>
+      <p class="lede">Each row is a bird or a drum. Click the squares to place hits. The number next to each bird shifts its pitch in semitones, which also makes it shorter and brighter as it goes up. Write up to eight bars, then pick how long the finished track should run.</p>
       <div class="row" style="gap:18px">
         <button class="btn primary" id="seqplay">Play loop</button>
         <label class="fld">Tempo <span id="bpmlabel" style="color:var(--txt);font-family:var(--mono)">128 bpm</span>
           <input type="range" id="bpmslider" min="70" max="180" value="128">
+        </label>
+        <label class="fld">Bars to write
+          <div class="seg" id="barseg">
+            <button data-bars="1" class="on">1</button>
+            <button data-bars="2">2</button>
+            <button data-bars="4">4</button>
+            <button data-bars="8">8</button>
+          </div>
+        </label>
+        <label class="fld">Track length
+          <select id="seqlength">
+            <option value="30">30 seconds</option>
+            <option value="60" selected>1 minute</option>
+            <option value="120">2 minutes</option>
+            <option value="180">3 minutes</option>
+          </select>
         </label>
         <label class="fld">Add a bird
           <select id="addbird"></select>
@@ -130,6 +146,7 @@
         <button class="btn sm" id="seqclear">Clear</button>
         <button class="btn sm gold" id="seqdl">Download</button>
       </div>
+      <div class="count" id="seqinfo" style="margin-top:14px"></div>
     </div>
     <div class="panel">
       <div class="seqwrap"><table class="seq" id="seqtable"></table></div>
@@ -137,7 +154,7 @@
   </section>
 
   <!-- ============ AVIARY ============ -->
-  <section id="view-aviary" class="hide">
+  <section id="view-aviary">
     <div class="panel">
       <h2>The aviary</h2>
       <p class="lede">Every sound in here is a real wild recording of a real bird, made by a person who went outside with a microphone. Their names are on the cards. Click a clip to hear it.</p>
@@ -160,4 +177,5 @@
   </footer>
 </div>
 
+<div class="popstage" id="popstage" aria-hidden="true"></div>
 <div class="toast" id="toast"></div>

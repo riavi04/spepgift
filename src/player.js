@@ -76,6 +76,25 @@ const Player = {
     return list[clipIdx % list.length] || list[0];
   },
 
+  /* Fire the visual callback when audio time reaches t. Timers are tracked so
+     stopping playback does not leave faces popping up afterwards. */
+  popTimers: [],
+  notePop(birdKey, t) {
+    const delay = Math.max(0, (t - this.ctx.currentTime) * 1000);
+    const id = setTimeout(() => {
+      if (this.onBird) this.onBird(birdKey);
+    }, delay);
+    this.popTimers.push(id);
+    if (this.popTimers.length > 400) {
+      this.popTimers = this.popTimers.filter((x) => x !== id).concat(id);
+    }
+  },
+
+  clearPopTimers() {
+    for (const id of this.popTimers) clearTimeout(id);
+    this.popTimers = [];
+  },
+
   scheduleEvents(ctx, graph, laneGains, events, t, song) {
     for (const ev of events) {
       switch (ev.type) {
@@ -88,6 +107,11 @@ const Player = {
         case "bird": {
           const buf = this.bufferFor(ev.birdKey, ev.clip);
           if (!buf) break;
+          // Show the face at the moment the call is heard, not when it was
+          // scheduled. Skipped during offline rendering, which has no clock.
+          if (this.onBird && ctx === this.ctx) {
+            this.notePop(ev.birdKey, t);
+          }
           bird(graph, buf, t, {
             semitones: ev.semitones,
             gain: ev.gain,
@@ -159,6 +183,8 @@ const Player = {
 
   stop() {
     this.playing = false;
+    this.clearPopTimers();
+    if (this.onStopped) this.onStopped();
     if (this.timer) { clearInterval(this.timer); this.timer = null; }
     if (this.graph) {
       // Fade the master out fast so stopping never clicks.
@@ -246,19 +272,22 @@ function encodeWav(audioBuffer) {
   return new Blob([ab], { type: "audio/wav" });
 }
 
-/* Happy Birthday, sung by three birds. Public domain melody, so it can ship.
-   [semitones from tonic, beats, phrase] */
-const BIRTHDAY = [
-  [-5, 0.5, 0], [-5, 0.5, 0], [-3, 1, 0], [-5, 1, 0], [0, 1, 0], [-1, 2, 0],
-  [-5, 0.5, 1], [-5, 0.5, 1], [-3, 1, 1], [-5, 1, 1], [2, 1, 1], [0, 2, 1],
-  [-5, 0.5, 2], [-5, 0.5, 2], [7, 1, 2], [4, 1, 2], [0, 1, 2], [-1, 1, 2], [-3, 2, 2],
-  [5, 0.5, 3], [5, 0.5, 3], [4, 1, 3], [0, 1, 3], [2, 1, 3], [0, 2, 3],
-];
+/* Happy Birthday, shared out among seven birds. Public domain melody.
+   The piha and loon take the two quick pickup notes that open each line,
+   which turns the song into call and response, and the three-wattled
+   bellbird's metallic bonk gets the high note because it is the moment worth
+   marking. Every bird here sits within about four semitones of the shared
+   reference, so carrying the melody costs them little of their own character.
+   [semitones from tonic, beats, index into TUNE_BIRDS] */
+const TUNE_BIRDS = ["piha", "penguin", "kookaburra", "loon",
+                    "bellbird3", "ptarmigan", "quetzal"];
 
-/* One bird per phrase, so each line of the song is sung by a different
-   species and the handover is audible. All three land together on the last
-   note. */
-const TUNE_BIRDS = ["penguin", "kookaburra", "ptarmigan", "kookaburra"];
+const BIRTHDAY = [
+  [-5, 0.5, 0], [-5, 0.5, 0], [-3, 1, 1], [-5, 1, 1], [0, 1, 1], [-1, 2, 1],
+  [-5, 0.5, 0], [-5, 0.5, 0], [-3, 1, 2], [-5, 1, 2], [2, 1, 2], [0, 2, 2],
+  [-5, 0.5, 3], [-5, 0.5, 3], [7, 1, 4], [4, 1, 5], [0, 1, 5], [-1, 1, 5], [-3, 2, 5],
+  [5, 0.5, 3], [5, 0.5, 3], [4, 1, 6], [0, 1, 6], [2, 1, 6], [0, 2, 6],
+];
 
 /* Pick the clip whose natural pitch is closest to the common reference, so
    the transposition needed is as small as possible and the call still sounds
@@ -288,31 +317,34 @@ async function playBirthday() {
   const voices = TUNE_BIRDS.map((k) =>
     (Player.buffers[k] && Player.buffers[k].length) ? tuneVoice(k)
       : (fallback ? tuneVoice(fallback) : null));
+  // Everyone who sang gets to appear together on the closing note.
   const finale = [];
   for (const v of voices) {
     if (v && !finale.some((f) => f.key === v.key)) finale.push(v);
   }
 
+  Player.clearPopTimers();
   let t = ctx.currentTime + 0.15;
   const total = BIRTHDAY.reduce((a, n) => a + n[1], 0) * beat;
   // A soft chord bed under the melody so it reads as music, not beeping.
   pad(graph, t, [root, root + 7, root + 12], total, 0.06);
 
-  BIRTHDAY.forEach(([semi, beats, phrase], i) => {
+  BIRTHDAY.forEach(([semi, beats, slot], i) => {
     const dur = beats * beat;
     const last = i === BIRTHDAY.length - 1;
-    const singing = last ? finale : [voices[phrase]].filter(Boolean);
+    const singing = last ? finale : [voices[slot]].filter(Boolean);
     singing.forEach((v, vi) => {
       const buf = Player.bufferFor(v.key, v.index);
       if (!buf) return;
       bird(graph, buf, t, {
         semitones: semi + v.offset,
-        gain: last ? 0.6 : 0.95,
-        pan: last && singing.length > 1 ? (vi / (singing.length - 1)) * 0.8 - 0.4 : 0,
+        gain: last ? 0.55 : 0.95,
+        pan: last && singing.length > 1 ? (vi / (singing.length - 1)) * 0.9 - 0.45 : 0,
         // Each note is trimmed to its own length so the melody stays in time
         // however long the underlying call happens to be.
         maxDur: dur * (last ? 2.4 : 1.06),
       });
+      if (Player.onBird) Player.notePop(v.key, t);
     });
     pluck(graph, t, root + 12 + semi, Math.min(0.4, dur * 0.8), 0.04);
     t += dur;

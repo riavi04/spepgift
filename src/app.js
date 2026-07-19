@@ -70,6 +70,59 @@ function poolFor(pack) {
     .map(([k, v]) => ({ key: k, common: v.common, clipCount: Player.buffers[k].length }));
 }
 
+/* ---------------- bird pop-ups ---------------- */
+/* One face per bird that is currently sounding. A bird already on screen is
+   re-triggered rather than duplicated, which matters because a busy track
+   fires several calls a second and stacking them would be unreadable. */
+const POP_HOLD = 850;        // ms a face stays after its last call
+// Tracks never put more than three birds on a step, so this only really binds
+// on the birthday finale, where the whole choir lands at once and should show.
+const POP_MAX = 7;
+const pops = new Map();      // birdKey -> {el, timer, since}
+
+function popBird(key) {
+  const stage = $("#popstage");
+  if (!stage || !BIRDS[key] || !PHOTOS[key]) return;
+
+  let entry = pops.get(key);
+  if (entry) {
+    // Already up: give it a quick squash instead of adding another copy.
+    entry.el.classList.remove("out");
+    entry.el.classList.remove("again");
+    void entry.el.offsetWidth;            // restart the animation
+    entry.el.classList.add("again");
+    clearTimeout(entry.timer);
+  } else {
+    if (pops.size >= POP_MAX) {
+      let oldestKey = null, oldest = Infinity;
+      for (const [k, v] of pops) if (v.since < oldest) { oldest = v.since; oldestKey = k; }
+      if (oldestKey) removePop(oldestKey);
+    }
+    const el = document.createElement("div");
+    el.className = "pop";
+    el.style.setProperty("--tilt", (Math.random() * 10 - 5).toFixed(1) + "deg");
+    el.innerHTML = `<img src="${PHOTOS[key].data}" alt=""><b>${BIRDS[key].common}</b>`;
+    stage.appendChild(el);
+    entry = { el, timer: null, since: performance.now() };
+    pops.set(key, entry);
+  }
+  entry.since = performance.now();
+  entry.timer = setTimeout(() => removePop(key), POP_HOLD);
+}
+
+function removePop(key) {
+  const entry = pops.get(key);
+  if (!entry) return;
+  pops.delete(key);
+  clearTimeout(entry.timer);
+  entry.el.classList.add("out");
+  setTimeout(() => entry.el.remove(), 320);
+}
+
+function clearPops() {
+  for (const key of Array.from(pops.keys())) removePop(key);
+}
+
 /* ---------------- toast ---------------- */
 let toastTimer = null;
 function toast(msg) {
@@ -168,7 +221,9 @@ function enterApp() {
   buildAviary();
   buildSequencer();
   renderSaved();
+  // A track is prepared and waiting, but the aviary is what he lands on.
   if (!currentSong) generate(false);
+  switchView("aviary");
 }
 
 /* ---------------- generate view ---------------- */
@@ -394,6 +449,8 @@ async function downloadSong(song, label) {
 /* ---------------- sequencer ---------------- */
 let pattern = null;
 
+let trackSeconds = 60;
+
 function newPattern() {
   return {
     kind: "pattern", patternBars: 1, bars: 1, bpm: 128, swing: 0.08,
@@ -402,6 +459,39 @@ function newPattern() {
              hat: new Array(16).fill(0), bass: new Array(16).fill(0) },
     lanes: [],
   };
+}
+
+function patternSteps() { return pattern.patternBars * STEPS_PER_BAR; }
+
+/* Growing repeats what is already written into the new bars rather than
+   leaving them blank, so lengthening a pattern gives something to vary
+   instead of something to fill in from scratch. */
+function setPatternBars(n) {
+  const oldLen = patternSteps();
+  const newLen = n * STEPS_PER_BAR;
+  const resize = (arr) => {
+    const out = new Array(newLen).fill(0);
+    for (let i = 0; i < newLen; i++) out[i] = arr[i % oldLen] || 0;
+    return out;
+  };
+  Object.keys(pattern.drums).forEach((k) => { pattern.drums[k] = resize(pattern.drums[k]); });
+  pattern.lanes.forEach((l) => { l.cells = resize(l.cells); });
+  pattern.patternBars = n;
+  pattern.bars = n;
+  $$("#barseg button").forEach((b) => b.classList.toggle("on", +b.dataset.bars === n));
+  renderSeq();
+  updateSeqInfo();
+}
+
+function updateSeqInfo() {
+  const el = $("#seqinfo");
+  if (!el) return;
+  const barDur = (60 / pattern.bpm) * 4;
+  const written = pattern.patternBars * barDur;
+  const loops = Math.max(1, Math.round(trackSeconds / written));
+  el.textContent = `${pattern.patternBars} bar${pattern.patternBars > 1 ? "s" : ""} `
+    + `= ${written.toFixed(1)}s of your own, repeated ${loops}x `
+    + `for a ${Math.round(loops * written)}s track`;
 }
 
 function buildSequencer() {
@@ -423,6 +513,7 @@ function buildSequencer() {
     sel.appendChild(o);
   });
   renderSeq();
+  updateSeqInfo();
 }
 
 function addLane(birdKey, redraw = true) {
@@ -432,7 +523,7 @@ function addLane(birdKey, redraw = true) {
   pattern.lanes.push({
     id: "p" + Date.now() + "_" + n,
     bird: birdKey, common: sp.common, clip: 0, semi: 0,
-    cells: new Array(16).fill(0),
+    cells: new Array(patternSteps()).fill(0),
     pan: n % 2 === 0 ? -0.25 : 0.25,
     muted: false, solo: false, gain: 1,
   });
@@ -443,10 +534,14 @@ const DRUM_ROWS = [["kick", "Kick"], ["snare", "Snare"], ["hat", "Hat"], ["bass"
 
 function renderSeq() {
   const t = $("#seqtable");
+  const steps = patternSteps();
   t.innerHTML = "";
+  t.className = "seq bars" + pattern.patternBars;
   const head = document.createElement("tr");
   head.innerHTML = '<th class="lbl"></th>' +
-    Array.from({ length: 16 }, (_, i) => `<th>${i % 4 === 0 ? i / 4 + 1 : ""}</th>`).join("");
+    Array.from({ length: steps }, (_, i) =>
+      `<th class="${i % STEPS_PER_BAR === 0 ? "barstart" : ""}">${
+        i % STEPS_PER_BAR === 0 ? Math.floor(i / STEPS_PER_BAR) + 1 : ""}</th>`).join("");
   t.appendChild(head);
 
   DRUM_ROWS.forEach(([key, label]) => {
@@ -455,10 +550,12 @@ function renderSeq() {
     td.className = "lbl";
     td.innerHTML = `<div class="r"><span class="nm">${label}</span></div>`;
     tr.appendChild(td);
-    for (let s = 0; s < 16; s++) {
+    for (let s = 0; s < steps; s++) {
       const cell = document.createElement("td");
       const b = document.createElement("button");
-      b.className = "cell drum" + (s % 4 === 0 ? " beat" : "") + (pattern.drums[key][s] ? " on" : "");
+      b.className = "cell drum" + (s % 4 === 0 ? " beat" : "")
+        + (s % STEPS_PER_BAR === 0 ? " barstart" : "")
+        + (pattern.drums[key][s] ? " on" : "");
       b.dataset.step = s;
       b.onclick = () => {
         pattern.drums[key][s] = pattern.drums[key][s] ? 0 : 1;
@@ -497,12 +594,15 @@ function renderSeq() {
       renderSeq();
     };
     tr.appendChild(td);
-    for (let s = 0; s < 16; s++) {
+    for (let s = 0; s < steps; s++) {
       const cell = document.createElement("td");
       const b = document.createElement("button");
-      b.className = "cell" + (s % 4 === 0 ? " beat" : "") + (lane.cells[s] ? " on" : "");
+      b.className = "cell" + (s % 4 === 0 ? " beat" : "")
+        + (s % STEPS_PER_BAR === 0 ? " barstart" : "")
+        + (lane.cells[s] ? " on" : "");
       b.dataset.step = s;
-      b.title = `${lane.common} · beat ${Math.floor(s / 4) + 1}.${(s % 4) + 1}`;
+      b.title = `${lane.common} · bar ${Math.floor(s / STEPS_PER_BAR) + 1}, `
+        + `beat ${Math.floor((s % STEPS_PER_BAR) / 4) + 1}.${(s % 4) + 1}`;
       b.onclick = () => {
         lane.cells[s] = lane.cells[s] ? 0 : 1;
         b.classList.toggle("on", !!lane.cells[s]);
@@ -533,7 +633,7 @@ async function toggleSeq() {
   }
   await Player.resume();
   Player.onStep = (step) => {
-    const s = step % 16;
+    const s = step % patternSteps();
     $$("#seqtable .cell").forEach((c) => c.classList.toggle("cur", +c.dataset.step === s));
   };
   Player.onEnd = null;
@@ -544,15 +644,29 @@ async function toggleSeq() {
   $$(".pip").forEach((p) => p.classList.remove("hit"));
 }
 
+/* Fills every bar, varying each one slightly so a long pattern does not come
+   back as the same bar copied out. */
 function randomisePattern() {
   rnd.seed((Math.random() * 4294967295) >>> 0);
-  pattern.drums.kick = euclid(3 + rnd.i(3), 16, rnd.i(4));
-  pattern.drums.snare = new Array(16).fill(0);
-  pattern.drums.snare[4] = pattern.drums.snare[12] = 1;
-  pattern.drums.hat = euclid(rnd.chance(0.5) ? 8 : 11, 16, rnd.i(3));
-  pattern.drums.bass = euclid(4 + rnd.i(3), 16, rnd.i(3));
+  const bars = pattern.patternBars;
+  const tile = (make) => {
+    const out = [];
+    for (let b = 0; b < bars; b++) out.push(...make(b));
+    return out;
+  };
+  const kickK = 3 + rnd.i(3), hatK = rnd.chance(0.5) ? 8 : 11, bassK = 4 + rnd.i(3);
+  pattern.drums.kick = tile((b) => euclid(kickK + (b % 2), 16, rnd.i(4)));
+  pattern.drums.snare = tile(() => {
+    const a = new Array(16).fill(0);
+    a[4] = a[12] = 1;
+    if (rnd.chance(0.3)) a[14] = 1;
+    return a;
+  });
+  pattern.drums.hat = tile(() => euclid(hatK, 16, rnd.i(3)));
+  pattern.drums.bass = tile(() => euclid(bassK, 16, rnd.i(3)));
   pattern.lanes.forEach((lane) => {
-    lane.cells = euclid(2 + rnd.i(4), 16, rnd.i(8));
+    const k = 2 + rnd.i(4);
+    lane.cells = tile(() => euclid(k, 16, rnd.i(8)));
     lane.semi = rnd.pick([-5, -3, 0, 0, 2, 4, 7, 9, 12]);
   });
   renderSeq();
@@ -635,6 +749,8 @@ function switchView(name) {
 /* ---------------- boot ---------------- */
 function boot() {
   loadAll();
+  Player.onBird = popBird;
+  Player.onStopped = clearPops;
 
   $("#intro").addEventListener("click", (e) => {
     if (e.target.id === "enterbtn") return;
@@ -680,20 +796,31 @@ function boot() {
 
   $("#seqplay").onclick = toggleSeq;
   $("#seqclear").onclick = () => {
-    pattern.lanes.forEach((l) => (l.cells = new Array(16).fill(0)));
-    Object.keys(pattern.drums).forEach((k) => (pattern.drums[k] = new Array(16).fill(0)));
+    const len = patternSteps();
+    pattern.lanes.forEach((l) => (l.cells = new Array(len).fill(0)));
+    Object.keys(pattern.drums).forEach((k) => (pattern.drums[k] = new Array(len).fill(0)));
     renderSeq();
   };
   $("#seqrandom").onclick = randomisePattern;
+  $$("#barseg button").forEach((b) => (b.onclick = () => setPatternBars(+b.dataset.bars)));
+  $("#seqlength").onchange = (e) => {
+    trackSeconds = parseInt(e.target.value, 10);
+    updateSeqInfo();
+  };
   $("#seqdl").onclick = () => {
     const clone = JSON.parse(JSON.stringify(pattern));
-    clone.bars = 4;                      // four times round the loop
-    clone.seconds = (60 / clone.bpm) * 4 * clone.bars;
-    downloadSong(clone, "sound-bird-loop");
+    const barDur = (60 / clone.bpm) * 4;
+    // Repeat the written pattern out to the requested track length.
+    const bars = Math.max(clone.patternBars,
+                          Math.round(trackSeconds / barDur / clone.patternBars) * clone.patternBars);
+    clone.bars = bars;
+    clone.seconds = bars * barDur;
+    downloadSong(clone, "soundbird-track");
   };
   $("#bpmslider").oninput = (e) => {
     pattern.bpm = parseInt(e.target.value, 10);
     $("#bpmlabel").textContent = pattern.bpm + " bpm";
+    updateSeqInfo();
   };
   $("#addbird").onchange = (e) => {
     if (e.target.value) { addLane(e.target.value); e.target.value = ""; }
